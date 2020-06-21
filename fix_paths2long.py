@@ -2,7 +2,7 @@ import os, csv
 import pandas as pd
 from datetime import datetime
 import tkinter as tk
-'''This uses substatial amounts of code from Stevoisiak's response in this thread:
+'''This uses substantial amounts of code from Stevoisiak's response in this thread:
 https://stackoverflow.com/questions/7546050/switch-between-two-frames-in-tkinter'''
 class AppGui(tk.Tk):
     def __init__(self, csvfile):
