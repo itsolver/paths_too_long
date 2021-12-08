@@ -109,7 +109,7 @@ class longPathSearcher:
 
 if __name__ == '__main__':
     targetDir = ''
-    csvFile = "sdrive_2long_test2.csv"
+    csvFile = "st_2long.csv"
 
     while not os.path.isdir(targetDir):
         targetDir = input("Enter path to starting directory: ")
