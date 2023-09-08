@@ -112,9 +112,7 @@ if __name__ == '__main__':
     csvFile = "st_2long.csv"
 
     while not os.path.isdir(targetDir):
-        targetDir = input("Enter path to starting directory: ")
-        if targetDir == 'td':
-            targetDir = r'F:\20xx   Classroom Unit Auditorium 3'
+        targetDir = input("Enter path to scan: ")
 
     results_csv = establish_csv(csvFile, ["Filepath", "File", "Name", "Extension", "Filesize", "Created", "Modified", "Retrieved", "Error", "Path_Length"])
     constdoc = longPathSearcher(targetDir, results_csv)
