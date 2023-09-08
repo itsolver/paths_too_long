@@ -1,21 +1,22 @@
-import os, csv
+import os
+import csv
 import pandas as pd
 from datetime import datetime
 
 def user_csv_choice():
-    '''Prompts user for csv file and checks that the user string corresponds to a file in current directory'''
-    aPrompt = "Enter csv filename including its extension." + os.linesep + "(The file must be in same directory as this script.)"
+    '''Prompts user for csv file and checks that the user string corresponds to a file in the current directory'''
+    aPrompt = "Enter csv filename including its extension." + os.linesep + "(The file must be in the same directory as this script.)"
     userStr = input(aPrompt)
     try:
         os.path.isfile(os.path.join(os.getcwd(), userStr))
     except:
-        print("error occured with that filename. Try again.")
+        print("An error occurred with that filename. Try again.")
         user_csv_choice()
 
     return userStr
 
 def user_chooses_yes(promptText):
-    '''asks yes or no question to user and returns 'True' for a yes answer and 'False' for a no answer'''
+    '''Asks a yes or no question to the user and returns 'True' for a yes answer and 'False' for a no answer'''
     yesNo = ['yes', 'y', 'Yes', 'Y', 'No', 'no', 'n', 'N']
     response = ''
     while response not in yesNo:
@@ -45,8 +46,8 @@ class longPathSearcher:
         self.results_csv = results_csv_name
         self.resultsDF = None
 
-    def collect_file_data(self, chosenDir = None, DF = None, ignoreThumbs=True):
-        '''adapted version of build_file_dataframe used in other scripts'''
+    def collect_file_data(self, chosenDir=None, DF=None, ignoreThumbs=True):
+        '''Adapted version of build_file_dataframe used in other scripts'''
         def timestamp_to_date(timestamp):
             DT = datetime.fromtimestamp(timestamp)
             return DT.strftime("%m/%d/%Y, %H:%M:%S")
@@ -90,22 +91,20 @@ class longPathSearcher:
                         fileList.append(file_data_to_list(root, file))
 
         self.fileDF = pd.DataFrame(fileList,
-                              columns=["Filepath", "File", "Name", "Extension", "Filesize", "Created", "Modified",
-                                       "Retrieved", "Error"])
+                                   columns=["Filepath", "File", "Name", "Extension", "Filesize", "Created", "Modified",
+                                            "Retrieved", "Error"])
         if DF is not None:
             fileDF = DF.append(self.fileDF)
             self.fileDF.drop_duplicates(subset="Filepath", keep='first', inplace=True)
         return self
 
-
     def remove_acceptable_paths(self):
         if isinstance(self.fileDF, pd.DataFrame):
-            self.fileDF["Path_Length"] = [len(ii) for ii in  self.fileDF["Filepath"]]
+            self.fileDF["Path_Length"] = [len(ii) for ii in self.fileDF["Filepath"]]
             self.fileDF = self.fileDF[self.fileDF["Path_Length"] >= 260]
         else:
             print("Error: no dataframe detected.")
         return self
-
 
 if __name__ == '__main__':
     targetDir = ''
@@ -114,7 +113,8 @@ if __name__ == '__main__':
     while not os.path.isdir(targetDir):
         targetDir = input("Enter path to scan: ")
 
-    results_csv = establish_csv(csvFile, ["Filepath", "File", "Name", "Extension", "Filesize", "Created", "Modified", "Retrieved", "Error", "Path_Length"])
+    results_csv = establish_csv(csvFile, ["Filepath", "File", "Name", "Extension", "Filesize", "Created", "Modified",
+                                         "Retrieved", "Error", "Path_Length", "path_fix"])
     constdoc = longPathSearcher(targetDir, results_csv)
     constdoc.collect_file_data().remove_acceptable_paths()
     longpathDF = pd.read_csv(results_csv)
