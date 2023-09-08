@@ -28,11 +28,12 @@ def user_chooses_yes(promptText):
 
 def establish_csv(defaultName, columnNamesList):
     csvPrompt = "Use %s?" % defaultName
+    csvFile = None  # Initialize csvFile to None
 
     if user_chooses_yes(csvPrompt) or not csvFile:
         csvFile = defaultName
     else:
-        csvFile = user_csv_choice()
+        csvFile = user_csv_choice() if not csvFile else csvFile
     csvPath = os.path.join(os.getcwd(), csvFile)
 
     if not os.path.isfile(csvPath):
