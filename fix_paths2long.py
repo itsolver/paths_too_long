@@ -1,12 +1,12 @@
 import os, csv
 import pandas as pd
-from datetime import datetime
 import tkinter as tk
 import zipfile
 import shutil
 
 '''This uses substantial amounts of code from Stevoisiak's response in this thread:
 https://stackoverflow.com/questions/7546050/switch-between-two-frames-in-tkinter'''
+
 class AppGui(tk.Tk):
     def __init__(self, csvfile):
         tk.Tk.__init__(self)
@@ -24,7 +24,7 @@ class AppGui(tk.Tk):
         self.segments = []
         #self.currentpathDF = pd.DataFrame(columns = ['segments', 'shared_with', 'fixed', 'solution'])
         self.extract_next_segs()
-        self.switch_frame(ChooseSegmentFrame, params = self.handlerdict)
+        self.switch_frame(FixSegmentFrame, params = self.handlerdict)
 
     def extract_next_segs(self):
         '''Finds the next empty row in the path_fix column of the dataframe and uses the data there to populate the handler
@@ -133,7 +133,7 @@ class FixSegmentFrame(tk.Frame):
         self.master.handlerdict['correction_index'] = correcttuple[1]
         self.master.add_correction()
         self.master.extract_next_segs()
-        self.master.switch_frame(ChooseSegmentFrame, self.master.handlerdict)
+        self.master.switch_frame(FixSegmentFrame, self.master.handlerdict)
 
     def save_to_csv(self):
         self.master.pathsDF.to_csv(self.master.csv)
@@ -181,7 +181,7 @@ class FixSegmentFrame(tk.Frame):
         self.master.handlerdict['correction_index'] = correcttuple[1]
         self.master.add_correction()
         self.master.extract_next_segs()
-        self.master.switch_frame(ChooseSegmentFrame, self.master.handlerdict)
+        self.master.switch_frame(FixSegmentFrame, self.master.handlerdict)
         #Todo: what happens when we run out of rows to fix?
 
     def save_to_csv(self):
@@ -194,7 +194,7 @@ class PageTwo(tk.Frame):
         tk.Frame.__init__(self, master)
         tk.Label(self, text="This is page two").pack(side="top", fill="x", pady=10)
         tk.Button(self, text="Return to start page",
-                  command=lambda: master.switch_frame(ChooseSegmentFrame)).pack()
+                  command=lambda: master.switch_frame(FixSegmentFrame)).pack()
 '''
 
 
