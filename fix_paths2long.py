@@ -24,7 +24,8 @@ class AppGui(tk.Tk):
         self.segments = []
         #self.currentpathDF = pd.DataFrame(columns = ['segments', 'shared_with', 'fixed', 'solution'])
         self.extract_next_segs()
-        self.switch_frame(FixSegmentFrame, params = self.handlerdict)
+        initial_segment_tuple = (self.handlerdict['segments'][0], 0)
+        self.switch_frame(FixSegmentFrame, params=initial_segment_tuple)
 
     def extract_next_segs(self):
         '''Finds the next empty row in the path_fix column of the dataframe and uses the data there to populate the handler
@@ -52,7 +53,6 @@ class AppGui(tk.Tk):
                     maxlengths.append(max([int(x) for x in sharedDF.Path_Length.values.tolist()]))
                 self.handlerdict['paths_shared_with'] = sharedcounts
                 self.handlerdict['max_length'] = maxlengths
-
 
     def add_correction(self):
         def applycorrection(parametersdict, targetpathlist):
@@ -98,16 +98,6 @@ class AppGui(tk.Tk):
         self._frame = new_frame
         self._frame.pack()
 
-    def edit_segment_return(self, frame_class, paramsdict = None):
-        """Destroys current frame and replaces it with a new one."""
-        if isinstance(paramsdict, dict):
-            new_frame = frame_class(self, paramsdict)
-        else:
-            new_frame = frame_class(self)
-        if self._frame is not None:
-            self._frame.destroy()
-        self._frame = new_frame
-        self._frame.pack()
 
 class FixSegmentFrame(tk.Frame):
     def __init__(self, master, segmenttuple):
@@ -121,8 +111,6 @@ class FixSegmentFrame(tk.Frame):
         def callback(): return (self.entry.get(), self.segment_index)
         tk.Button(self, text="enter", command=lambda entry = self.entry: self.enter_click(callback())).pack()
         tk.Button(self, text="write changes to csv", command= self.save_to_csv).pack()
-
-        # Button to compress folder
         tk.Button(self, text="Compress Folder", command=self.compress_folder).pack()
 
     def enter_click(self, correcttuple):
@@ -133,7 +121,7 @@ class FixSegmentFrame(tk.Frame):
         self.master.handlerdict['correction_index'] = correcttuple[1]
         self.master.add_correction()
         self.master.extract_next_segs()
-        self.master.switch_frame(FixSegmentFrame, self.master.handlerdict)
+        self.master.switch_frame(ChooseSegmentFrame, self.master.handlerdict)
 
     def save_to_csv(self):
         self.master.pathsDF.to_csv(self.master.csv)
@@ -181,7 +169,7 @@ class FixSegmentFrame(tk.Frame):
         self.master.handlerdict['correction_index'] = correcttuple[1]
         self.master.add_correction()
         self.master.extract_next_segs()
-        self.master.switch_frame(FixSegmentFrame, self.master.handlerdict)
+        self.master.switch_frame(ChooseSegmentFrame, self.master.handlerdict)
         #Todo: what happens when we run out of rows to fix?
 
     def save_to_csv(self):
@@ -194,7 +182,7 @@ class PageTwo(tk.Frame):
         tk.Frame.__init__(self, master)
         tk.Label(self, text="This is page two").pack(side="top", fill="x", pady=10)
         tk.Button(self, text="Return to start page",
-                  command=lambda: master.switch_frame(FixSegmentFrame)).pack()
+                  command=lambda: master.switch_frame(ChooseSegmentFrame)).pack()
 '''
 
 
