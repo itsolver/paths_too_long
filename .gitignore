@@ -38,3 +38,7 @@ Thumbs.db
 
 # Stupid Files #
 desktop.ini
+
+# Visual Studio Code #
+######################
+.vscode/*
