@@ -136,7 +136,7 @@ class pathfixer:
                 self.pathsDF[label] = ''
         #self.pathsDF['path_fix'].replace('', np.nan, inplace=True)
         #self.pathsDF['path_fix'].replace(None, np.nan, inplace=True)
-        self.pathsDF.path_fix.fillna(value=pd.np.nan, inplace=True)
+        self.pathsDF.path_fix.fillna(value=pd.NA, inplace=True)
         self.pathsDF.dropna(subset=['path_fix'], inplace=True)
         #handler dict contains {'long_path':<str>, 'path_correction': <str>}
         self.handlerdict = {}
