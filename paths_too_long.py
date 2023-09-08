@@ -4,8 +4,8 @@ import pandas as pd
 from datetime import datetime
 
 def user_csv_choice():
-    '''Prompts the user for a CSV file and checks that the user string corresponds to a file in the current directory'''
-    aPrompt = "Enter the CSV filename including its extension." + os.linesep + "(The file must be in the same directory as this script.)"
+    '''Prompts user for csv file and checks that the user string corresponds to a file in the current directory'''
+    aPrompt = "Enter csv filename including its extension." + os.linesep + "(The file must be in the same directory as this script.)"
     userStr = input(aPrompt)
     try:
         os.path.isfile(os.path.join(os.getcwd(), userStr))
@@ -111,7 +111,10 @@ if __name__ == '__main__':
     csvFile = "st_2long.csv"
 
     while not os.path.isdir(targetDir):
-        targetDir = input("Enter the path to scan: ")
+        targetDir = input("Enter path to scan: ")
+
+    # Ensure the drive letter has a single backslash
+    targetDir = targetDir.rstrip('\\') + '\\'
 
     results_csv = establish_csv(csvFile, ["Filepath", "File", "Name", "Extension", "Filesize", "Created", "Modified",
                                          "Retrieved", "Error", "Path_Length", "path_fix"])
