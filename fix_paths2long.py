@@ -235,7 +235,7 @@ def establish_csv(defaultName, columnNamesList):
 
 
 if __name__ == "__main__":
-    csvfilename = "sdrive_2long_test2.csv"
+    csvfilename = "st_2long.csv"
     csvpath = establish_csv(csvfilename, ['segments', 'shared_with', 'fixed', 'solution', 'path_fix'])
     app = AppGui(csvpath)
     app.mainloop()

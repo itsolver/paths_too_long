@@ -313,7 +313,7 @@ class pathfixer:
         print(f"Dataframe successfully saved in following location \n{savepath}")
 
 if __name__ == "__main__":
-    csvfilename = "sdrive_2long_test2.csv"
+    csvfilename = "st_2long.csv"
     csvpath = establish_csv(csvfilename, ['segments', 'shared_with', 'fixed', 'solution', 'path_fix'])
     paths2fixDF = pd.read_csv(csvpath)
     constdoc = pathfixer(paths2fixDF)
