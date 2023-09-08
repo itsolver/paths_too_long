@@ -4,8 +4,8 @@ import pandas as pd
 from datetime import datetime
 
 def user_csv_choice():
-    '''Prompts user for csv file and checks that the user string corresponds to a file in the current directory'''
-    aPrompt = "Enter csv filename including its extension." + os.linesep + "(The file must be in the same directory as this script.)"
+    '''Prompts the user for a CSV file and checks that the user string corresponds to a file in the current directory'''
+    aPrompt = "Enter the CSV filename including its extension." + os.linesep + "(The file must be in the same directory as this script.)"
     userStr = input(aPrompt)
     try:
         os.path.isfile(os.path.join(os.getcwd(), userStr))
@@ -111,7 +111,7 @@ if __name__ == '__main__':
     csvFile = "st_2long.csv"
 
     while not os.path.isdir(targetDir):
-        targetDir = input("Enter path to scan: ")
+        targetDir = input("Enter the path to scan: ")
 
     results_csv = establish_csv(csvFile, ["Filepath", "File", "Name", "Extension", "Filesize", "Created", "Modified",
                                          "Retrieved", "Error", "Path_Length", "path_fix"])
@@ -120,5 +120,4 @@ if __name__ == '__main__':
     longpathDF = pd.read_csv(results_csv)
     longpathDF = pd.concat([longpathDF, constdoc.fileDF], ignore_index=True)
     longpathDF.drop_duplicates(subset=["Filepath", "Extension", "Modified"], keep='first', inplace=True)
-    longpathDF['Filepath'] = longpathDF['Filepath'].apply(lambda x: x.replace("W:", "W:\\"))  # Ensure backslash is present
     longpathDF.to_csv(results_csv, index=False, quoting=csv.QUOTE_NONNUMERIC)
