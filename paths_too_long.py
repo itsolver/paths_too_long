@@ -120,6 +120,6 @@ if __name__ == '__main__':
     constdoc = longPathSearcher(targetDir, results_csv)
     constdoc.collect_file_data().remove_acceptable_paths()
     longpathDF = pd.read_csv(results_csv)
-    longpathDF = longpathDF.append(constdoc.fileDF)
+    longpathDF = pd.concat([longpathDF, constdoc.fileDF], ignore_index=True)
     longpathDF.drop_duplicates(subset=["Filepath", "Extension", "Modified"], keep='first', inplace=True)
     longpathDF.to_csv(results_csv, index=False, quoting=csv.QUOTE_NONNUMERIC)
