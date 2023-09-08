@@ -2,6 +2,8 @@ import os, csv
 import pandas as pd
 from datetime import datetime
 import tkinter as tk
+import shutil
+
 '''This uses substantial amounts of code from Stevoisiak's response in this thread:
 https://stackoverflow.com/questions/7546050/switch-between-two-frames-in-tkinter'''
 class AppGui(tk.Tk):
@@ -22,6 +24,15 @@ class AppGui(tk.Tk):
         #self.currentpathDF = pd.DataFrame(columns = ['segments', 'shared_with', 'fixed', 'solution'])
         self.extract_next_segs()
         self.switch_frame(ChooseSegmentFrame, params = self.handlerdict)
+        
+    def compress_and_delete(self):
+        dir_to_compress = os.path.join(*self.handlerdict['segments'])
+        if not os.path.isdir(dir_to_compress):
+            print(f"The directory '{dir_to_compress}' does not exist.")
+            return
+        shutil.make_archive(dir_to_compress, 'zip', dir_to_compress)
+        shutil.rmtree(dir_to_compress)
+        print(f"Directory '{dir_to_compress}' has been compressed and deleted.")
 
     def extract_next_segs(self):
         '''Finds the next empty row in the path_fix column of the dataframe and uses the data there to populate the handler
@@ -109,10 +120,10 @@ class ChooseSegmentFrame(tk.Frame):
     def __init__(self, master, paramsdict):
         tk.Frame.__init__(self, master)
         self.segments = paramsdict['segments']
-
         tk.Label(self, text=os.path.join(*self.segments), font='Helvetica 9 bold').grid(row = 0, column = 1, columnspan = len(self.segments))
         tk.Label(self, text = "Files with shared path:", font='Helvetica 8 bold').grid(row = 2, column = 0)
         tk.Label(self, text="Max Length with shared path:", font='Helvetica 8 bold').grid(row=3, column=0)
+        tk.Button(self, text="Compress and Delete", command=master.compress_and_delete).grid(row=4, column=1, columnspan=len(self.segments))
         for segmentindex, dir in enumerate(self.segments):
             sharednum = str(paramsdict['paths_shared_with'][segmentindex])
             maxlen = str(paramsdict['max_length'][segmentindex])
@@ -235,7 +246,7 @@ def establish_csv(defaultName, columnNamesList):
 
 
 if __name__ == "__main__":
-    csvfilename = "sdrive_2long_test2.csv"
+    csvfilename = "st_2long.csv"
     csvpath = establish_csv(csvfilename, ['segments', 'shared_with', 'fixed', 'solution', 'path_fix'])
     app = AppGui(csvpath)
     app.mainloop()
