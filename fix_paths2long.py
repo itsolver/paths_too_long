@@ -2,6 +2,9 @@ import os, csv
 import pandas as pd
 from datetime import datetime
 import tkinter as tk
+import zipfile
+import shutil
+
 '''This uses substantial amounts of code from Stevoisiak's response in this thread:
 https://stackoverflow.com/questions/7546050/switch-between-two-frames-in-tkinter'''
 class AppGui(tk.Tk):
@@ -106,30 +109,55 @@ class AppGui(tk.Tk):
         self._frame = new_frame
         self._frame.pack()
 
-class ChooseSegmentFrame(tk.Frame):
-    def __init__(self, master, paramsdict):
+class FixSegmentFrame(tk.Frame):
+    def __init__(self, master, segmenttuple):
+        self.segment = segmenttuple[0]
+        self.segment_index = segmenttuple[1]
         tk.Frame.__init__(self, master)
-        self.segments = paramsdict['segments']
+        tk.Label(self, text=self.segment).pack(side="top", fill="x", pady=10)
+        self.entry = tk.Entry(self)
+        self.entry.insert(0, self.segment)
+        self.entry.pack()
+        def callback(): return (self.entry.get(), self.segment_index)
+        tk.Button(self, text="enter", command=lambda entry = self.entry: self.enter_click(callback())).pack()
+        tk.Button(self, text="write changes to csv", command= self.save_to_csv).pack()
 
-        tk.Label(self, text=os.path.join(*self.segments), font='Helvetica 9 bold').grid(row = 0, column = 1, columnspan = len(self.segments))
-        tk.Label(self, text = "Files with shared path:", font='Helvetica 8 bold').grid(row = 2, column = 0)
-        tk.Label(self, text="Max Length with shared path:", font='Helvetica 8 bold').grid(row=3, column=0)
-        for segmentindex, dir in enumerate(self.segments):
-            sharednum = str(paramsdict['paths_shared_with'][segmentindex])
-            maxlen = str(paramsdict['max_length'][segmentindex])
-            #sharednum = str(paramsdict['paths_shared_with'][self.segments.index(dir)]) #delete if line above works
-            buttext = dir
-            if self.segments.count(dir) != 1:
-                buttext  = f"{dir} ({str(segmentindex)})"
-            my_button = tk.Button(self, text=buttext)
-            my_button.segment_index = segmentindex
-            my_button.directory = dir
-            #my_button.configure(command=lambda button=my_button: master.switch_frame(FixSegmentFrame, (button['text'], button.segment_index))) #before version
-            my_button.configure(command=lambda button=my_button: master.switch_frame(FixSegmentFrame, (button.directory, button.segment_index)))
-            #self.button.configure(command=lambda: master.switch_frame(FixSegmentFrame, [button['text']]))
-            my_button.grid(row = 1, column = segmentindex+1)
-            tk.Label(self, text=sharednum).grid(row=2, column=segmentindex+1)  # adds directory labels above buttons
-            tk.Label(self, text=maxlen).grid(row=3, column=segmentindex+1)
+        # Button to compress folder
+        tk.Button(self, text="Compress Folder", command=self.compress_folder).pack()
+
+    def enter_click(self, correcttuple):
+        '''function for 'enter' button when clicked'''
+        correction = correcttuple[0]
+        self.master.handlerdict["to_correct"] = self.segment
+        self.master.handlerdict["correction"] = correction
+        self.master.handlerdict['correction_index'] = correcttuple[1]
+        self.master.add_correction()
+        self.master.extract_next_segs()
+        self.master.switch_frame(ChooseSegmentFrame, self.master.handlerdict)
+
+    def save_to_csv(self):
+        self.master.pathsDF.to_csv(self.master.csv)
+        print("CSV written successfully.")
+
+    def compress_folder(self):
+        folder_path = os.path.join(*self.master.handlerdict['segments'])
+        try:
+            # Create a ZIP file with the same name as the folder
+            folder_name = os.path.basename(folder_path)
+            zip_file_path = f"{folder_name}.zip"
+            with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                for root, dirs, files in os.walk(folder_path):
+                    for file in files:
+                        file_path = os.path.join(root, file)
+                        arcname = os.path.relpath(file_path, folder_path)
+                        zipf.write(file_path, arcname=arcname)
+
+            # Delete the original folder
+            shutil.rmtree(folder_path)
+
+            print(f"Folder '{folder_name}' compressed to '{zip_file_path}' and original folder deleted.")
+        except Exception as e:
+            print(f"An error occurred: {str(e)}")
 
 class FixSegmentFrame(tk.Frame):
     def __init__(self, master, segmenttuple):
