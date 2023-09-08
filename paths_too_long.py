@@ -29,7 +29,7 @@ def user_chooses_yes(promptText):
 def establish_csv(defaultName, columnNamesList):
     csvPrompt = "Use %s?" % defaultName
 
-    if user_chooses_yes(csvPrompt) or not csvFile:
+    if user_chooses_yes(csvPrompt) or not defaultName:  # Use default if user hits Enter or if defaultName is not provided
         csvFile = defaultName
     else:
         csvFile = user_csv_choice() if user_csv_choice() else defaultName  # Check if user input is empty and set to default if so
