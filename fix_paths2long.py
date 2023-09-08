@@ -1,12 +1,9 @@
 import os, csv
 import pandas as pd
+from datetime import datetime
 import tkinter as tk
-import zipfile
-import shutil
-
 '''This uses substantial amounts of code from Stevoisiak's response in this thread:
 https://stackoverflow.com/questions/7546050/switch-between-two-frames-in-tkinter'''
-
 class AppGui(tk.Tk):
     def __init__(self, csvfile):
         tk.Tk.__init__(self)
@@ -24,8 +21,7 @@ class AppGui(tk.Tk):
         self.segments = []
         #self.currentpathDF = pd.DataFrame(columns = ['segments', 'shared_with', 'fixed', 'solution'])
         self.extract_next_segs()
-        initial_segment_tuple = (self.handlerdict['segments'][0], 0)
-        self.switch_frame(FixSegmentFrame, params=initial_segment_tuple)
+        self.switch_frame(ChooseSegmentFrame, params = self.handlerdict)
 
     def extract_next_segs(self):
         '''Finds the next empty row in the path_fix column of the dataframe and uses the data there to populate the handler
@@ -35,24 +31,24 @@ class AppGui(tk.Tk):
         else:
             sharedcounts = []
             maxlengths = []
-            null_rows = self.pathsDF[self.pathsDF.path_fix.isnull()]
-            if null_rows.empty:
-                print("No further paths require fixing. Remember to write your recent changes to the CSV before quitting")
-            else:
-                tofixindex = null_rows.index[0]
-                tofixpath = self.pathsDF.loc[tofixindex, 'Filepath']
-                segmentlist = splitall(tofixpath)
-                self.handlerdict['path'] = tofixpath
-                self.handlerdict['segments'] = segmentlist
-                for i, seg in enumerate(segmentlist): # loop to populate the sharedcountslist
-                    sharedDF = self.pathsDF.copy()
-                    inclusivepath = os.path.join(*segmentlist[:(i + 1)])
-                    path_contains = lambda i: inclusivepath in i[:len(inclusivepath) + 1]
-                    sharedDF = sharedDF[sharedDF['Filepath'].apply(path_contains)]
-                    sharedcounts.append(sharedDF.shape[0])
-                    maxlengths.append(max([int(x) for x in sharedDF.Path_Length.values.tolist()]))
-                self.handlerdict['paths_shared_with'] = sharedcounts
-                self.handlerdict['max_length'] = maxlengths
+            if self.pathsDF[self.pathsDF.path_fix.isnull()].empty:
+                print("no further paths require fixing. Remember to write your recent changes to the csv before quitting ")
+            tofixindex = self.pathsDF[self.pathsDF.path_fix.isnull()].index[0]
+            tofixpath = self.pathsDF.loc[tofixindex, 'Filepath']
+            segmentlist = splitall(tofixpath)
+            self.handlerdict['path'] = tofixpath
+            self.handlerdict['segments'] = segmentlist
+            for i, seg in enumerate(segmentlist): #loop to populate the sharedcountslist
+                sharedDF = self.pathsDF.copy()
+                #sharedDF["path_list"] = [splitall(x)[:segmentlist.index(seg) + 1] for x in sharedDF.Filepath.values.tolist()] #deprecated
+                #recreates path up to and including the 'seg'
+                inclusivepath = os.path.join(*segmentlist[:(i + 1)])
+                path_contains = lambda i : inclusivepath in i[:len(inclusivepath)+1]
+                sharedDF = sharedDF[sharedDF['Filepath'].apply(path_contains)]
+                sharedcounts.append(sharedDF.shape[0])
+                maxlengths.append(max([int(x) for x in sharedDF.Path_Length.values.tolist()])) #append max path length with each shared directory
+            self.handlerdict['paths_shared_with'] = sharedcounts
+            self.handlerdict['max_length'] = maxlengths
 
     def add_correction(self):
         def applycorrection(parametersdict, targetpathlist):
@@ -98,6 +94,17 @@ class AppGui(tk.Tk):
         self._frame = new_frame
         self._frame.pack()
 
+    def edit_segment_return(self, frame_class, paramsdict = None):
+        """Destroys current frame and replaces it with a new one."""
+        if isinstance(paramsdict, dict):
+            new_frame = frame_class(self, paramsdict)
+        else:
+            new_frame = frame_class(self)
+        if self._frame is not None:
+            self._frame.destroy()
+        self._frame = new_frame
+        self._frame.pack()
+
 class ChooseSegmentFrame(tk.Frame):
     def __init__(self, master, paramsdict):
         tk.Frame.__init__(self, master)
@@ -135,7 +142,7 @@ class FixSegmentFrame(tk.Frame):
         def callback(): return (self.entry.get(), self.segment_index)
         tk.Button(self, text="enter", command=lambda entry = self.entry: self.enter_click(callback())).pack()
         tk.Button(self, text="write changes to csv", command= self.save_to_csv).pack()
-        tk.Button(self, text="Compress Folder", command=self.compress_folder).pack()
+        #tk.Button(self, text="enter", command= lambda entryclick: self.enter_click(callback())).pack()
 
     def enter_click(self, correcttuple):
         '''function for 'enter' button when clicked'''
@@ -146,30 +153,21 @@ class FixSegmentFrame(tk.Frame):
         self.master.add_correction()
         self.master.extract_next_segs()
         self.master.switch_frame(ChooseSegmentFrame, self.master.handlerdict)
+        #Todo: what happens when we run out of rows to fix?
 
     def save_to_csv(self):
         self.master.pathsDF.to_csv(self.master.csv)
         print("CSV written successfully.")
 
-    def compress_folder(self):
-        folder_path = os.path.join(*self.master.handlerdict['segments'])
-        try:
-            # Create a ZIP file with the same name as the folder
-            folder_name = os.path.basename(folder_path)
-            zip_file_path = f"{folder_name}.zip"
-            with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
-                for root, dirs, files in os.walk(folder_path):
-                    for file in files:
-                        file_path = os.path.join(root, file)
-                        arcname = os.path.relpath(file_path, folder_path)
-                        zipf.write(file_path, arcname=arcname)
+'''
+class PageTwo(tk.Frame):
+    def __init__(self, master):
+        tk.Frame.__init__(self, master)
+        tk.Label(self, text="This is page two").pack(side="top", fill="x", pady=10)
+        tk.Button(self, text="Return to start page",
+                  command=lambda: master.switch_frame(ChooseSegmentFrame)).pack()
+'''
 
-            # Delete the original folder
-            shutil.rmtree(folder_path)
-
-            print(f"Folder '{folder_name}' compressed to '{zip_file_path}' and original folder deleted.")
-        except Exception as e:
-            print(f"An error occurred: {str(e)}")
 
 class pathFixer:
     def __init__(self):
@@ -237,8 +235,7 @@ def establish_csv(defaultName, columnNamesList):
 
 
 if __name__ == "__main__":
-    csvfilename = "st_2long.csv"
+    csvfilename = "sdrive_2long_test2.csv"
     csvpath = establish_csv(csvfilename, ['segments', 'shared_with', 'fixed', 'solution', 'path_fix'])
     app = AppGui(csvpath)
     app.mainloop()
-
